@@ -1,0 +1,1 @@
+# plugins-affiliatewp-affiliate-area-tabs
