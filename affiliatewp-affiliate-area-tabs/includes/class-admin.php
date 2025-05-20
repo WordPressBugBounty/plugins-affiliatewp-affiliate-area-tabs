@@ -75,16 +75,7 @@ class AffiliateWP_Affiliate_Area_Tabs_Admin {
 	 * @return string
 	 */
 	private function expand_collapse_tabs() {
-		ob_start();
-
-		$expand_text   = __( 'Expand all tabs', 'affiliatewp-affiliate-area-tabs' );
-		$collapse_text = __( 'Collapse all tabs', 'affiliatewp-affiliate-area-tabs' );
-		?>
-		<p>
-			<a href="#" class="aat-hide-show-tabs" data-text-swap="<?php echo $collapse_text; ?>" data-text-original="<?php echo $expand_text; ?>"><?php echo $expand_text; ?></a>
-		</p>
-		<?php
-		return ob_get_clean();
+		return '<p><a href="#" class="aat-hide-show-tabs">' . esc_html( __( 'Expand all tabs', 'affiliatewp-affiliate-area-tabs' ) ) . '</a></p>';
 	}
 
 	/**
@@ -235,7 +226,14 @@ class AffiliateWP_Affiliate_Area_Tabs_Admin {
 
 		// Register scripts.
 		wp_register_style( 'aat-admin', AFFWP_AAT_PLUGIN_URL . 'assets/css/admin' . $suffix . '.css', array( 'dashicons' ), AFFWP_AAT_VERSION );
-		wp_register_script( 'aat-admin-scripts', AFFWP_AAT_PLUGIN_URL . 'assets/js/admin-scripts' . $suffix . '.js',  array(), AFFWP_AAT_VERSION, false );
+		wp_register_script( 'aat-admin-scripts', AFFWP_AAT_PLUGIN_URL . 'assets/js/admin-scripts' . $suffix . '.js',  array('jquery'), AFFWP_AAT_VERSION, true );
+
+		// Localize script with translatable strings.
+		$translation_array = array(
+			'expand_text'   => __( 'Expand all tabs', 'affiliatewp-affiliate-area-tabs' ),
+			'collapse_text' => __( 'Collapse all tabs', 'affiliatewp-affiliate-area-tabs' ),
+		);
+		wp_localize_script( 'aat-admin-scripts', 'aat_admin_data', $translation_array );
 
 		// Enqueue scripts.
 		if ( $screen === 'affiliate-wp-settings' && isset( $_GET['tab'] ) && $_GET['tab'] === 'affiliate_area_tabs' ) {

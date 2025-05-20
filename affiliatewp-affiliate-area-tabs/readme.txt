@@ -1,10 +1,10 @@
 === AffiliateWP - Affiliate Area Tabs ===
-Contributors: sumobi, mordauk, ramiabraham, drewapicture, aubreypwd
-Tags: AffiliateWP, affiliate, affiliates, Pippin Williamson, Andrew Munro, mordauk, pippinsplugins, sumobi, ecommerce, e-commerce, e commerce, selling, membership, referrals, marketing, affiliate marketing
+Contributors: sumobi
+Tags: AffiliateWP, Affiliate Area, Custom Tabs, Affiliate Dashboard
 Requires at least: 5.2
-Tested up to: 6.4.1
+Tested up to: 6.8.1
 Requires PHP: 7.4
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -55,6 +55,9 @@ OR you can just install it with WordPress by going to Plugins >> Add New >> and 
 2. Viewing the custom tabs on the front-end website
 
 == Changelog ==
+
+= 1.4.2 =
+* Fix: Unable to click the "Expand all tabs" link
 
 = 1.4.1 =
 * Improved: Our settings have been re-organized to be more intuitive (intended to be used with AffiliateWP 2.18.0)

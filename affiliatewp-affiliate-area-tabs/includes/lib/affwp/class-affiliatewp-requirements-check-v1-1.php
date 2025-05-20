@@ -11,17 +11,19 @@
  * @version     1.1.0
  */
 
-// Exit if accessed directly
-if ( ! defined( 'ABSPATH' ) ) exit;
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Class used by AffiliateWP to enforce minimum requirements for itself and its add-ons.
  *
  * @since 1.0.0
- * @since 1.1.0 Renamed to AffiliateWP_Requirements_Check_v1_1
+ * @since 1.1.0 Renamed to AffiliateWP_Requirements_Check_V1_1
  * @abstract
  */
-abstract class AffiliateWP_Requirements_Check_v1_1 {
+abstract class AffiliateWP_Requirements_Check_V1_1 {
 
 	/**
 	 * Plugin base file.
@@ -29,7 +31,7 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 * @since 1.0.0
 	 * @var   string
 	 */
-	private $file = '';
+	protected $file = '';
 
 	/**
 	 * Plugin basename.
@@ -37,7 +39,7 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 * @since 1.0.0
 	 * @var   string
 	 */
-	private $base = '';
+	protected $base = '';
 
 	/**
 	 * Plugin slug.
@@ -54,27 +56,27 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 * @since 1.1.0 WordPress minimum version raised to 5.2.
 	 * @var   array[]
 	 */
-	protected $requirements = array(
+	protected $requirements = [
 		// PHP.
-		'php' => array(
+		'php' => [
 			'minimum' => '5.6',
 			'name'    => 'PHP',
 			'exists'  => true,
 			'current' => false,
 			'checked' => false,
-			'met'     => false
-		),
+			'met'     => false,
+		],
 
 		// WordPress.
-		'wp' => array(
+		'wp'  => [
 			'minimum' => '5.2.0',
 			'name'    => 'WordPress',
 			'exists'  => true,
 			'current' => false,
 			'checked' => false,
-			'met'     => false
-		),
-	);
+			'met'     => false,
+		],
+	];
 
 	/**
 	 * Add-on requirements array.
@@ -82,7 +84,7 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 * @since 1.0.0
 	 * @var   array
 	 */
-	protected $addon_requirements = array();
+	protected $addon_requirements = [];
 
 	/**
 	 * Sets up the plugin requirements class.
@@ -103,9 +105,9 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 
 		// Always load translations.
 		if ( version_compare( $affwp_version, '2.7', '<' ) ) {
-			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+			add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 		} else {
-			add_action( 'affwp_plugins_loaded', array( $this, 'load_textdomain' ) );
+			add_action( 'affwp_plugins_loaded', [ $this, 'load_textdomain' ] );
 		}
 	}
 
@@ -163,7 +165,6 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 *         return get_option( 'affwp_ap_version' );
 	 *     }
 	 *
-	 *
 	 * @since 1.0.0
 	 *
 	 * @return array Plugin requirements.
@@ -178,13 +179,14 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 * @since 1.0.0
 	 */
 	protected function quit() {
-		add_action( 'admin_head',                        array( $this, 'admin_head'        ) );
-		add_filter( "plugin_action_links_{$this->base}", array( $this, 'plugin_row_links'  ) );
-		add_action( "after_plugin_row_{$this->base}",    array( $this, 'plugin_row_notice' ) );
+		add_action( 'admin_head', [ $this, 'admin_head' ] );
+		add_filter( "plugin_action_links_{$this->base}", [ $this, 'plugin_row_links' ] );
+		add_action( "after_plugin_row_{$this->base}", [ $this, 'plugin_row_notice' ] );
+		// Child classes are responsible for any broader activation notices (e.g., AffiliateWP_Activation).
 	}
 
 	//
-	// Specific Methods
+	// Specific Methods.
 	//
 
 	/**
@@ -203,7 +205,7 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 * @since 1.0.0
 	 */
 	public function install() {
-		// Bootstrap to include all of the necessary files
+		// Bootstrap to include all of the necessary files.
 		$this->bootstrap();
 	}
 
@@ -232,7 +234,7 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @return string Unmet requirements text.
+	 * @return void Unmet requirements text.
 	 */
 	private function unmet_requirements_text() {
 		esc_html_e( 'This plugin is not fully active.', 'affiliate-wp' );
@@ -243,10 +245,11 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @return string Unment requirements description text.
+	 * @return string Unmet requirements description text.
 	 */
 	private function unmet_requirements_description_text() {
-		return esc_html__( 'Requires %s (%s), but (%s) is installed.', 'affiliate-wp' );
+		// translators: %1$s: Name of the required item (e.g., WordPress), %2$s: Minimum required version, %3$s: Currently installed version.
+		return esc_html__( 'Requires %1$s (%2$s), but (%3$s) is installed.', 'affiliate-wp' );
 	}
 
 	/**
@@ -257,7 +260,8 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 * @return string Unmet missing requirements text.
 	 */
 	private function unmet_requirements_missing_text() {
-		return esc_html__( 'Requires %s (%s), but it appears to be missing.', 'affiliate-wp' );
+		// translators: %1$s: Name of the required item (e.g., AffiliateWP), %2$s: Minimum required version.
+		return esc_html__( 'Requires %1$s (%2$s), but it appears to be missing.', 'affiliate-wp' );
 	}
 
 	/**
@@ -293,40 +297,55 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 		return 'affwp-requirements';
 	}
 
-	//
-	// Agnostic Methods
-	//
-
 	/**
 	 * Sets up the plugin-agnostic method to output the additional plugin row.
 	 *
 	 * @since 1.0.0
 	 */
 	public function plugin_row_notice() {
-		?><tr class="active <?php echo esc_attr( $this->unmet_requirements_name() ); ?>-row">
-		<th class="check-column">
-			<span class="dashicons dashicons-warning"></span>
-		</th>
-		<td class="column-primary">
-			<?php $this->unmet_requirements_text(); ?>
-		</td>
-		<td class="column-description">
-			<?php $this->unmet_requirements_description(); ?>
-		</td>
-		</tr><?php
-	}
+		// Get the requirements name.
+		$name = $this->unmet_requirements_name();
 
-	/**
-	 * Sets up the plugin-agnostic method used to output all unmet requirement information.
-	 *
-	 * @since 1.0.0
-	 */
-	private function unmet_requirements_description() {
-		foreach ( $this->requirements as $properties ) {
-			if ( empty( $properties['met'] ) ) {
-				$this->unmet_requirement_description( $properties );
-			}
+		// Bail if requirements are met.
+		if ( $this->met() ) {
+			return;
 		}
+
+		$wp_list_table = _get_list_table( 'WP_Plugins_List_Table' );
+		$columns       = method_exists( $wp_list_table, 'get_columns' ) ? $wp_list_table->get_columns() : [];
+		// Calculate colspan for the notice message td: should span all columns except the first one (checkbox/icon).
+		$notice_colspan = ! empty( $columns ) ? count( $columns ) - 1 : 2; // Default to 2 (description + auto-updates) if columns unknown.
+
+		// Ensure colspan is at least 1.
+		if ( $notice_colspan < 1 ) {
+			$notice_colspan = 1;
+		}
+
+		?>
+		<tr class="active <?php echo esc_attr( $name ); ?>-row">
+			<th class="check-column" scope="row">
+				<span class="dashicons dashicons-warning"></span>
+			</th>
+			<td class="column-primary" colspan="<?php echo esc_attr( $notice_colspan ); ?>">
+				<?php
+				// Heading.
+				echo '<p><strong>' . esc_html( $this->unmet_requirements_text() ) . '</strong></p>';
+
+				// Loop through each requirement.
+				// Use $this->get_requirements() to ensure we have the latest state after check() has run.
+				foreach ( $this->get_requirements() as $requirement_details ) {
+					// Skip if met.
+					if ( ! empty( $requirement_details['met'] ) ) {
+						continue;
+					}
+					// Output the description for this unmet requirement.
+					// The $this->unmet_requirement_description() method (singular) is responsible for one requirement.
+					$this->unmet_requirement_description( $requirement_details );
+				}
+				?>
+			</td>
+		</tr>
+		<?php
 	}
 
 	/**
@@ -336,28 +355,35 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 *
 	 * @param array $requirement Requirements array.
 	 */
-	private function unmet_requirement_description( $requirement = array() ) {
+	private function unmet_requirement_description( $requirement = [] ) {
 
-		// Requirement exists, but is out of date
-		if ( ! empty( $requirement['exists'] ) ) {
+		// Requirement could not be found (e.g., plugin not installed).
+		if ( empty( $requirement['exists'] ) ) {
 			$text = sprintf(
-				$this->unmet_requirements_description_text(),
-				'<strong>' . esc_html( $requirement['name']    ) . '</strong>',
-				'<strong>' . esc_html( $requirement['minimum'] ) . '</strong>',
-				'<strong>' . esc_html( $requirement['current'] ) . '</strong>'
+				$this->unmet_requirements_missing_text(), // "Requires %1$s (%2$s), but it appears to be missing."
+				'<strong>' . esc_html( $requirement['name'] ) . '</strong>',
+				'<strong>' . esc_html( $requirement['minimum'] ) . '</strong>'
 			);
-
-			// Requirement could not be found
+			// Requirement exists, but is the special 'not-active' status.
+		} elseif ( isset( $requirement['current'] ) && 'not-active' === $requirement['current'] ) {
+			// translators: %1$s: Name of the required item (e.g., AffiliateWP), %2$s: Minimum required version.
+			$text = sprintf(
+				esc_html__( 'Requires %1$s (%2$s), but it is not active.', 'affiliate-wp' ),
+				'<strong>' . esc_html( $requirement['name'] ) . '</strong>',
+				'<strong>' . esc_html( $requirement['minimum'] ) . '</strong>'
+			);
+			// Requirement exists, is active, but version is too low.
 		} else {
 			$text = sprintf(
-				$this->unmet_requirements_missing_text(),
-				'<strong>' . esc_html( $requirement['name']    ) . '</strong>',
-				'<strong>' . esc_html( $requirement['minimum'] ) . '</strong>'
+				$this->unmet_requirements_description_text(), // "Requires %1$s (%2$s), but (%3$s) is installed."
+				'<strong>' . esc_html( $requirement['name'] ) . '</strong>',
+				'<strong>' . esc_html( $requirement['minimum'] ) . '</strong>',
+				'<strong>' . esc_html( $requirement['current'] ) . '</strong>' // This will be the actual low version number.
 			);
 		}
 
-		// Output the description
-		echo '<p>' . $text . '</p>';
+		// Output the description.
+		echo '<p>' . wp_kses_post( $text ) . '</p>';
 	}
 
 	/**
@@ -367,8 +393,9 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 */
 	public function admin_head() {
 
-		// Get the requirements row name
-		$name = $this->unmet_requirements_name(); ?>
+		// Get the requirements row name.
+		$name = $this->unmet_requirements_name();
+		?>
 
 		<style id="<?php echo esc_attr( $name ); ?>">
 			.plugins tr[data-plugin="<?php echo esc_html( $this->base ); ?>"] th,
@@ -407,20 +434,20 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 * @param array $links Requirement links.
 	 * @return array Requirement links with markup.
 	 */
-	public function plugin_row_links( $links = array() ) {
+	public function plugin_row_links( $links = [] ) {
 
-		// Add the Requirements link
+		// Add the Requirements link.
 		$links['requirements'] =
 			'<a href="' . esc_url( $this->unmet_requirements_url() ) . '" aria-label="' . esc_attr( $this->unmet_requirements_label() ) . '">'
 			. esc_html( $this->unmet_requirements_link() )
 			. '</a>';
 
-		// Return links with Requirements link
+		// Return links with Requirements link.
 		return $links;
 	}
 
 	//
-	// Checkers
+	// Checkers.
 	//
 
 	/**
@@ -430,23 +457,44 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 */
 	private function check() {
 
-		// Loop through requirements
+		// Loop through requirements.
 		foreach ( $this->requirements as $dependency => $properties ) {
 
 			if ( method_exists( $this, 'check_' . $dependency ) ) {
-				$version = call_user_func( array( $this, 'check_' . $dependency ) );
+				$version_or_status = call_user_func( [ $this, 'check_' . $dependency ] );
 			} else {
-				$version = false;
+				$version_or_status = false; // Default to false if no checker method.
 			}
 
-			// Merge to original array
-			if ( ! empty( $version ) ) {
-				$this->requirements[ $dependency ] = array_merge( $this->requirements[ $dependency ], array(
-					'current' => $version,
-					'checked' => true,
-					'met'     => version_compare( $version, $properties['minimum'], '>=' )
-				) );
+			// Merge to original array.
+			if ( false === $version_or_status ) {
+				// If checker returned false, it means the dependency doesn't exist or is not found.
+				$this->requirements[ $dependency ] = array_merge(
+					$this->requirements[ $dependency ],
+					[
+						'exists'  => false, // Explicitly set exists to false.
+						'current' => false, // Ensure current is also false.
+						'checked' => true,
+						'met'     => false,
+					]
+				);
+			} elseif ( ! empty( $version_or_status ) ) { // Can be a version string or 'not-active'.
+				$this->requirements[ $dependency ] = array_merge(
+					$this->requirements[ $dependency ],
+					[
+						// If check_affwp returned 'not-active', class_exists was true, so 'exists' is true.
+						// If it's a version string, it also implies existence.
+						'exists'  => true,
+						'current' => $version_or_status,
+						'checked' => true,
+						// 'met' is false if 'not-active', otherwise compare version.
+						'met'     => ( 'not-active' !== $version_or_status ) && version_compare( (string) $version_or_status, $properties['minimum'], '>=' ),
+					]
+				);
 			}
+			// If $version_or_status was an empty string (but not false) from a custom check,
+			// 'exists' remains as initially set, 'current' isn't updated, 'met' becomes false.
+			// This case is handled by the default 'met' => false if the condition above isn't hit.
 		}
 	}
 
@@ -480,10 +528,23 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @return string AffiliateWP version.
+	 * @return string|false AffiliateWP version, 'not-active', or false if class doesn't exist.
 	 */
 	protected function check_affwp() {
-		return get_option( 'affwp_version' );
+		if ( ! class_exists( 'Affiliate_WP' ) ) {
+			// If class doesn't exist, it implies it's not installed or files are missing.
+			return false;
+		}
+
+		// Class exists, so plugin files are there. Now check if it's active by version.
+		$version = get_option( 'affwp_version' );
+
+		if ( empty( $version ) ) {
+			// Plugin is likely installed (class exists) but not fully active or version not set.
+			return 'not-active'; // Special string to indicate inactive state.
+		}
+
+		return $version;
 	}
 
 	/**
@@ -495,14 +556,14 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 	 */
 	public function met() {
 
-		// Run the check
+		// Run the check.
 		$this->check();
 
-		// Default to true (any false below wins)
+		// Default to true (any false below wins).
 		$retval  = true;
 		$to_meet = wp_list_pluck( $this->requirements, 'met' );
 
-		// Look for unmet dependencies, and exit if so
+		// Look for unmet dependencies, and exit if so.
 		foreach ( $to_meet as $met ) {
 			if ( empty( $met ) ) {
 				$retval = false;
@@ -510,12 +571,12 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 			}
 		}
 
-		// Return
+		// Return.
 		return $retval;
 	}
 
 	//
-	// Translations
+	// Translations.
 	//
 
 	/**
@@ -550,7 +611,7 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 		$lang_dir = apply_filters( $this->base . '_languages_directory', trailingslashit( $lang_dir ) );
 
 		// Traditional WordPress plugin locale filter.
-		$locale = apply_filters( 'plugin_locale',  get_locale(), $this->slug );
+		$locale = apply_filters( 'plugin_locale', get_locale(), $this->slug );
 		$mofile = sprintf( '%1$s-%2$s.mo', $this->slug, $locale );
 
 		//
@@ -561,15 +622,14 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 		$mofile_local  = WP_PLUGIN_DIR . '/' . $lang_dir . $mofile;
 
 		if ( file_exists( $mofile_global ) ) {
-			// Load wp-content/languages/{slug}/{slug}-{locale}.mo
+			// Load wp-content/languages/{slug}/{slug}-{locale}.mo.
 			load_textdomain( $this->slug, $mofile_global );
 		} elseif ( file_exists( $mofile_local ) ) {
-			// Load wp-content/plugins/{plugin_dir}/languages/{slug}-{locale}.mo
+			// Load wp-content/plugins/{plugin_dir}/languages/{slug}-{locale}.mo.
 			load_textdomain( $this->slug, $mofile_local );
 		} else {
 			// Load the default language files.
 			load_plugin_textdomain( $this->slug, false, $lang_dir );
 		}
 	}
-
 }

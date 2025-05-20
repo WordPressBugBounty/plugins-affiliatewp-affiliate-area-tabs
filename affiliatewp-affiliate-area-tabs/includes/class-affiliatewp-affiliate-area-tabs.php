@@ -10,7 +10,9 @@
  */
 
 // Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 
@@ -75,16 +77,16 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 
 			if ( ! isset( self::$instance ) && ! ( self::$instance instanceof AffiliateWP_Affiliate_Area_Tabs ) ) {
 
-				self::$instance = new AffiliateWP_Affiliate_Area_Tabs;
+				self::$instance = new AffiliateWP_Affiliate_Area_Tabs();
 
-				self::$instance->file = $file;
+				self::$instance->file    = $file;
 				self::$instance->version = get_plugin_data( self::$instance->file, false, false )['Version'] ?? '';
 
 				self::$instance->setup_constants();
 				self::$instance->load_textdomain();
 				self::$instance->includes();
 				self::$instance->hooks();
-				self::$instance->functions = new AffiliateWP_Affiliate_Area_Tabs_Functions;
+				self::$instance->functions = new AffiliateWP_Affiliate_Area_Tabs_Functions();
 
 			}
 
@@ -182,8 +184,8 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 			$lang_dir = apply_filters( 'affiliatewp_affiliate_area_tabs_languages_directory', $lang_dir );
 
 			// Traditional WordPress plugin locale filter.
-			$locale   = apply_filters( 'plugin_locale', get_locale(), 'affiliatewp-affiliate-area-tabs' );
-			$mofile   = sprintf( '%1$s-%2$s.mo', 'affiliatewp-affiliate-area-tabs', $locale );
+			$locale = apply_filters( 'plugin_locale', get_locale(), 'affiliatewp-affiliate-area-tabs' );
+			$mofile = sprintf( '%1$s-%2$s.mo', 'affiliatewp-affiliate-area-tabs', $locale );
 
 			// Setup paths to current locale file.
 			$mofile_local  = $lang_dir . $mofile;
@@ -228,7 +230,6 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 			if ( is_admin() ) {
 				require_once AFFWP_AAT_PLUGIN_DIR . 'includes/class-admin.php';
 			}
-
 		}
 
 		/**
@@ -241,13 +242,13 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 		private function hooks() {
 
 			// plugin meta.
-			add_filter( 'plugin_row_meta', array( $this, 'plugin_meta' ), null, 2 );
+			add_filter( 'plugin_row_meta', [ $this, 'plugin_meta' ], null, 2 );
 
 			// Render the tab content.
-			add_filter( 'affwp_render_affiliate_dashboard_tab', array( $this, 'render_custom_tab' ), 10, 2 );
+			add_filter( 'affwp_render_affiliate_dashboard_tab', [ $this, 'render_custom_tab' ], 10, 2 );
 
 			// Redirect if non-affiliate tries to access a tab's page.
-			add_action( 'template_redirect', array( $this, 'redirect' ) );
+			add_action( 'template_redirect', [ $this, 'redirect' ] );
 
 			// User has at least AffiliateWP version 2.1.7.
 			if ( $this->has_2_1_7() ) {
@@ -258,13 +259,12 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 				 * @since 1.1
 				 * @since 1.2 Increased priority to 9999 so we can better listen for other tabs being added. E.g. Direct Link Tracking.
 				 */
-				add_filter( 'affwp_affiliate_area_tabs', array( $this, 'affiliate_area_tabs' ), 9999 );
+				add_filter( 'affwp_affiliate_area_tabs', [ $this, 'affiliate_area_tabs' ], 9999 );
 
 			}
 
 			// Hide tabs in the Affiliate Area.
-			add_filter( 'affwp_affiliate_area_show_tab', array( $this, 'hide_existing_tabs' ), 10, 2 );
-
+			add_filter( 'affwp_affiliate_area_show_tab', [ $this, 'hide_existing_tabs' ], 10, 2 );
 		}
 
 		/**
@@ -288,7 +288,6 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 
 			// Return the $content.
 			return $content;
-
 		}
 
 		/**
@@ -319,7 +318,7 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 		public function hide_existing_tabs( $show, $tab ) {
 
 			// Look in the new array for hidden tabs.
-			$tabs = affiliate_wp()->settings->get( 'affiliate_area_tabs', array() );
+			$tabs = affiliate_wp()->settings->get( 'affiliate_area_tabs', [] );
 
 			if ( $tabs ) {
 				foreach ( $tabs as $key => $tab_array ) {
@@ -330,7 +329,6 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 			}
 
 			return $show;
-
 		}
 
 		/**
@@ -348,8 +346,8 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 
 			if ( $affiliate_area_tabs ) {
 
-				$new_tabs        = array();
-				$saved_tab_slugs = array();
+				$new_tabs        = [];
+				$saved_tab_slugs = [];
 
 				// Create a new array in the needed format of tab slug => tab title.
 				foreach ( $affiliate_area_tabs as $key => $tab ) {
@@ -377,7 +375,6 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 						// Store an array of tab slugs.
 						$saved_tab_slugs[] = $tab['slug'];
 					}
-
 				}
 
 				/**
@@ -397,7 +394,6 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 			}
 
 			return $tabs;
-
 		}
 
 		/**
@@ -492,7 +488,6 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 				wp_redirect( $redirect );
 				exit;
 			}
-
 		}
 
 
@@ -508,9 +503,9 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 		 */
 		public function plugin_meta( $links, $file ) {
 			if ( plugin_basename( $this->file ) === $file ) {
-					$plugins_link = array(
+					$plugins_link = [
 						'<a title="' . __( 'Get more add-ons for AffiliateWP', 'affiliatewp-affiliate-area-tabs' ) . '" href="' . admin_url( 'admin.php?page=affiliate-wp-add-ons' ) . '">' . __( 'More add-ons', 'affiliatewp-affiliate-area-tabs' ) . '</a>',
-					);
+					];
 
 					$links = array_merge( $links, $plugins_link );
 			}

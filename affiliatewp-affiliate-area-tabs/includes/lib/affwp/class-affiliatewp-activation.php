@@ -11,8 +11,10 @@
  * @version     1.0.0
  */
 
-// Exit if accessed directly
-if ( ! defined( 'ABSPATH' ) ) exit;
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * AffiliateWP Activation Handler Class
@@ -27,7 +29,7 @@ class AffiliateWP_Activation {
 	 * @since 1.0.0
 	 * @var   string
 	 */
-    public $plugin_name;
+	public $plugin_name;
 
 	/**
 	 * Main plugin file path.
@@ -53,69 +55,93 @@ class AffiliateWP_Activation {
 	 */
 	public $has_affiliatewp;
 
-    /**
-     * Sets up the activation class.
-     *
-     * @since 1.0.0
-     *
-     * @param string $plugin_file Main add-on plugin file path.
-     * @param string $plugin_path Main add-on plugin file.
-     */
-    public function __construct( $plugin_path, $plugin_file ) {
-        // We need plugin.php!
-        require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	/**
+	 * Message to display if AffiliateWP needs activation.
+	 *
+	 * @since 1.0.1
+	 * @var   string
+	 */
+	protected $activate_message = '';
 
-        $plugins = get_plugins();
+	/**
+	 * Message to display if AffiliateWP needs installation.
+	 *
+	 * @since 1.0.1
+	 * @var   string
+	 */
+	protected $install_message = '';
 
-        // Set plugin directory.
-        $plugin_path = array_filter( explode( '/', $plugin_path ) );
-        $this->plugin_path = end( $plugin_path );
+	/**
+	 * Sets up the activation class.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $plugin_path Main add-on plugin directory path (e.g., affiliatewp-affiliate-area-tabs).
+	 * @param string $plugin_file Main add-on plugin file (e.g., affiliatewp-affiliate-area-tabs.php).
+	 */
+	public function __construct( $plugin_path, $plugin_file ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
-        // Set plugin file.
-        $this->plugin_file = $plugin_file;
+		$plugins = get_plugins();
 
-        // Set plugin name.
-        if ( isset( $plugins[$this->plugin_path . '/' . $this->plugin_file]['Name'] ) ) {
-            $this->plugin_name = $plugins[$this->plugin_path . '/' . $this->plugin_file]['Name'];
-        } else {
-            $this->plugin_name = __( 'This plugin', 'affiliatewp-afgf' );
-        }
+		// Set plugin directory.
+		$plugin_path_array = array_filter( explode( '/', $plugin_path ) );
+		$this->plugin_path = end( $plugin_path_array );
 
-        // Is AffiliateWP installed?
-        foreach ( $plugins as $plugin_path => $plugin ) {
-            
-            if ( $plugin['Name'] == 'AffiliateWP' ) {
-                $this->has_affiliatewp = true;
-                break;
-            }
-        }
-    }
+		// Set plugin file.
+		$this->plugin_file = $plugin_file;
+
+		// Set plugin name.
+		$plugin_key = $this->plugin_path . '/' . $this->plugin_file;
+		if ( isset( $plugins[ $plugin_key ]['Name'] ) ) {
+			$this->plugin_name = $plugins[ $plugin_key ]['Name'];
+		} else {
+			// Fallback if plugin data isn't available (should be rare).
+			$this->plugin_name = 'This plugin';
+		}
+
+		// Is AffiliateWP installed?
+		foreach ( $plugins as $installed_plugin_path => $plugin ) {
+			if ( 'AffiliateWP' === $plugin['Name'] ) {
+				$this->has_affiliatewp = true;
+				break;
+			}
+		}
+	}
 
 
-    /**
-     * Displays the missing AffiliateWP notice.
-     *
-     * @since 1.0.0
-     */
-    public function run() {
-        // Display notice
-        add_action( 'admin_notices', array( $this, 'missing_affiliatewp_notice' ) );
-    }
+	/**
+	 * Prepares and hooks the missing AffiliateWP notice.
+	 *
+	 * @since 1.0.0
+	 * @since 1.0.1 Modified to accept pre-translated messages.
+	 *
+	 * @param string $activate_message The full HTML message to display if AffiliateWP needs activation.
+	 * @param string $install_message  The full HTML message to display if AffiliateWP needs installation.
+	 */
+	public function run( $activate_message, $install_message ) {
+		$this->activate_message = $activate_message;
+		$this->install_message  = $install_message;
 
-    /**
-     * Displays a notice if AffiliateWP isn't installed.
-     *
-     * @since 1.0.0
-     *
-     * @return string The notice to display.
-     */
-    public function missing_affiliatewp_notice() {
+		// Display notice.
+		add_action( 'admin_notices', [ $this, 'missing_affiliatewp_notice' ] );
+	}
 
-        if ( $this->has_affiliatewp ) {
-           echo '<div class="error"><p>' . sprintf( __( '%s requires %s. Please activate it to continue.', 'affiliatewp-afgf' ), $this->plugin_name, '<a href="https://affiliatewp.com/" title="AffiliateWP" target="_blank">AffiliateWP</a>' ) . '</p></div>'; 
+	/**
+	 * Displays a notice if AffiliateWP isn't installed.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return void
+	 */
+	public function missing_affiliatewp_notice() {
+		if ( $this->has_affiliatewp ) {
+			if ( ! empty( $this->activate_message ) ) {
+				echo $this->activate_message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Message is pre-escaped by calling code.
+			}
+		} elseif ( ! empty( $this->install_message ) ) {
+				echo $this->install_message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Message is pre-escaped by calling code.
 
-        } else {
-            echo '<div class="error"><p>' . sprintf( __( '%s requires %s. Please install it to continue.', 'affiliatewp-afgf' ), $this->plugin_name, '<a href="https://affiliatewp.com/" title="AffiliateWP" target="_blank">AffiliateWP</a>' ) . '</p></div>';
-        }
-    }
+		}
+	}
 }
