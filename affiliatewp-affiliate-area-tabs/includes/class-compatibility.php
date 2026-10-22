@@ -1,5 +1,10 @@
 <?php
 
+// Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class AffiliateWP_Affiliate_Area_Tabs_Compatibility {
     
     public function __construct() {
@@ -52,7 +57,7 @@ class AffiliateWP_Affiliate_Area_Tabs_Compatibility {
 
                 ?>
                 <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == $tab_slug ? ' active' : ''; ?>">
-                    <a href="<?php echo esc_url( add_query_arg( 'tab', $tab_slug ) ); ?>"><?php echo $tab['title']; ?></a>
+                    <a href="<?php echo esc_url( add_query_arg( 'tab', $tab_slug ) ); ?>"><?php echo esc_html( $tab['title'] ); ?></a>
                 </li>
             <?php endforeach; ?>
 
@@ -85,6 +90,11 @@ class AffiliateWP_Affiliate_Area_Tabs_Compatibility {
                 $tab_slug    = isset( $tab['slug'] ) ? $tab['slug'] : '';
                 $current_tab = isset( $_GET['tab'] ) && $_GET['tab'] ? $_GET['tab'] : '';
 
+                // A deleted or trashed page no longer backs the tab.
+                if ( ! $post instanceof WP_Post || 'trash' === get_post_status( $post ) ) {
+                    continue;
+                }
+
                 /**
                  * Showing a tab which has the [affiliate_area] shortcode inside will cause a nesting fatal error
                  * Instead of erroring out, let's just show a blank tab.
@@ -114,7 +124,7 @@ class AffiliateWP_Affiliate_Area_Tabs_Compatibility {
 
                     ?>
 
-                    <div id="affwp-affiliate-dashboard-tab-<?php echo $tab_slug; ?>" class="affwp-tab-content">
+                    <div id="affwp-affiliate-dashboard-tab-<?php echo esc_attr( $tab_slug ); ?>" class="affwp-tab-content">
 	                    <?php echo do_shortcode( wpautop( $post->post_content ) ); ?>
                     </div>
 
@@ -128,7 +138,7 @@ class AffiliateWP_Affiliate_Area_Tabs_Compatibility {
                         }
 
                     ?>
-                    <div id="affwp-affiliate-dashboard-tab-<?php echo $tab_slug; ?>" class="affwp-tab-content">
+                    <div id="affwp-affiliate-dashboard-tab-<?php echo esc_attr( $tab_slug ); ?>" class="affwp-tab-content">
 	                    <?php echo do_shortcode( wpautop( $post->post_content ) ); ?>
                     </div>
 

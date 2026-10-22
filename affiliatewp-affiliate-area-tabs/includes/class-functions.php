@@ -38,15 +38,15 @@ class AffiliateWP_Affiliate_Area_Tabs_Functions {
 	public function default_tabs() {
 
 		$default_tabs = array(
-			'urls'      => __( 'Affiliate URLs', 'affiliate-wp' ),
-			'stats'     => __( 'Statistics', 'affiliate-wp' ),
-			'graphs'    => __( 'Graphs', 'affiliate-wp' ),
-			'referrals' => __( 'Referrals', 'affiliate-wp' ),
-			'payouts'   => __( 'Payouts', 'affiliate-wp' ),
-			'visits'    => __( 'Visits', 'affiliate-wp' ),
-			'coupons'   => __( 'Coupons', 'affiliate-wp' ),
-			'creatives' => __( 'Creatives', 'affiliate-wp' ),
-			'settings'  => __( 'Settings', 'affiliate-wp' ),
+			'urls'      => __( 'Affiliate URLs', 'affiliatewp-affiliate-area-tabs' ),
+			'stats'     => __( 'Statistics', 'affiliatewp-affiliate-area-tabs' ),
+			'graphs'    => __( 'Graphs', 'affiliatewp-affiliate-area-tabs' ),
+			'referrals' => __( 'Referrals', 'affiliatewp-affiliate-area-tabs' ),
+			'payouts'   => __( 'Payouts', 'affiliatewp-affiliate-area-tabs' ),
+			'visits'    => __( 'Visits', 'affiliatewp-affiliate-area-tabs' ),
+			'coupons'   => __( 'Coupons', 'affiliatewp-affiliate-area-tabs' ),
+			'creatives' => __( 'Creatives', 'affiliatewp-affiliate-area-tabs' ),
+			'settings'  => __( 'Settings', 'affiliatewp-affiliate-area-tabs' ),
 		);
 
 		return $default_tabs;
@@ -286,7 +286,13 @@ class AffiliateWP_Affiliate_Area_Tabs_Functions {
 
 			// Find the custom tab within the array.
 			if ( $tab_slug === $custom_tab['slug'] ) {
-				$post        = get_post( $custom_tab['id'] );
+				$post = get_post( $custom_tab['id'] );
+
+				// A deleted or trashed page no longer backs the tab.
+				if ( ! $post instanceof WP_Post || 'trash' === get_post_status( $post ) ) {
+					return '';
+				}
+
 				$tab_content = $post->post_content;
 				break;
 			}
@@ -319,20 +325,24 @@ class AffiliateWP_Affiliate_Area_Tabs_Functions {
 		$tabs = apply_filters( 'affwp_aat_add_on_tabs', 
 			array(
 				'direct-links' => array(
+					/* translators: %s: Add-on name. */
 					'notice' => sprintf( __( 'This tab has been added from the %s add-on. Only affiliates with direct link tracking enabled will see this tab in the Affiliate Area.', 'affiliatewp-affiliate-area-tabs' ), '<em>Direct Link Tracking</em>' ),
-					'title'  => __( 'Direct Links', 'affiliatewp-direct-link-tracking' )
+					'title'  => __( 'Direct Links', 'affiliatewp-affiliate-area-tabs' )
 				),
 				'order-details' => array(
+					/* translators: %s: Add-on name. */
 					'notice' => sprintf( __( 'This tab has been added from the %s add-on. Only affiliates with access to order details will see this tab in the Affiliate Area.', 'affiliatewp-affiliate-area-tabs' ), '<em>Order Details For Affiliates</em>' ),
-					'title'  => __( 'Order Details', 'affiliatewp-order-details-for-affiliates' )
+					'title'  => __( 'Order Details', 'affiliatewp-affiliate-area-tabs' )
 				),
 				'coupons' => array(
+					/* translators: %s: Add-on name. */
 					'notice' => sprintf( __( 'This tab has been added from the %s add-on. Only affiliates with coupons assigned will see this tab in the Affiliate Area.', 'affiliatewp-affiliate-area-tabs' ), '<em>Show Affiliate Coupons</em>' ),
-					'title'  => __( 'Coupons', 'affiliatewp-show-affiliate-coupons' )
+					'title'  => __( 'Coupons', 'affiliatewp-affiliate-area-tabs' )
 				),
 				'lifetime-customers' => array(
+					/* translators: %s: Add-on name. */
 					'notice' => sprintf( __( 'This tab has been added from the %s add-on. Only affiliates with access to their lifetime customers will see this tab in the Affiliate Area.', 'affiliatewp-affiliate-area-tabs' ), '<em>Lifetime Commissions</em>' ),
-					'title'  => __( 'Lifetime Customers', 'affiliate-wp-lifetime-commissions' ),
+					'title'  => __( 'Lifetime Customers', 'affiliatewp-affiliate-area-tabs' ),
 				)
 			)
 		);

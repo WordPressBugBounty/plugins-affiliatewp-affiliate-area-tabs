@@ -105,7 +105,7 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 		 */
 		public function __clone() {
 			// Cloning instances of the class is forbidden.
-			_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'affiliatewp-affiliate-area-tabs' ), '1.0' );
+			_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin’ huh?', 'affiliatewp-affiliate-area-tabs' ), '1.0' );
 		}
 
 		/**
@@ -117,7 +117,7 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 		 */
 		public function __wakeup() {
 			// Unserializing instances of the class is forbidden.
-			_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'affiliatewp-affiliate-area-tabs' ), '1.0' );
+			_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin’ huh?', 'affiliatewp-affiliate-area-tabs' ), '1.0' );
 		}
 
 		/**
@@ -250,6 +250,12 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 			// Redirect if non-affiliate tries to access a tab's page.
 			add_action( 'template_redirect', [ $this, 'redirect' ] );
 
+			// Apply the same restriction to every non-front-end reader, since template_redirect
+			// does not fire for REST or sitemap requests.
+			add_filter( 'rest_page_query', [ $this, 'exclude_protected_pages' ], 10, 2 );
+			add_filter( 'rest_prepare_page', [ $this, 'gate_protected_page_response' ], 10, 2 );
+			add_filter( 'wp_sitemaps_posts_query_args', [ $this, 'exclude_protected_from_sitemap' ], 10, 2 );
+
 			// User has at least AffiliateWP version 2.1.7.
 			if ( $this->has_2_1_7() ) {
 
@@ -283,6 +289,11 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 				return $content;
 			}
 
+			// Only active affiliates (or admins) may read custom-tab content.
+			if ( ! $this->viewer_may_read_tab_pages() ) {
+				return $content;
+			}
+
 			// Get the tab's content.
 			$content = $this->custom_tab_content( $active_tab );
 
@@ -300,8 +311,8 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 		 */
 		public function custom_tab_content( $active_tab ) {
 			?>
-			<div id="affwp-affiliate-dashboard-tab-<?php echo $active_tab; ?>" class="affwp-tab-content">
-				<?php echo $this->functions->get_custom_tab_content( $active_tab ); ?>
+			<div id="affwp-affiliate-dashboard-tab-<?php echo esc_attr( $active_tab ); ?>" class="affwp-tab-content">
+				<?php echo $this->functions->get_custom_tab_content( $active_tab ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Page content, rendered like the_content. ?>
 			</div>
 			<?php
 		}
@@ -477,17 +488,130 @@ if ( ! class_exists( 'AffiliateWP_Affiliate_Area_Tabs' ) ) {
 		 */
 		public function redirect() {
 
-			if ( ! affiliatewp_affiliate_area_tabs()->functions->protected_page_ids() ) {
+			$protected = (array) affiliatewp_affiliate_area_tabs()->functions->protected_page_ids();
+
+			if ( empty( $protected ) ) {
+				return;
+			}
+
+			// On archives the queried object is a term or user whose ID can collide with a page ID.
+			if ( ! is_singular() ) {
+				return;
+			}
+
+			$post_id = get_queried_object_id();
+
+			if ( ! in_array( (int) $post_id, array_map( 'absint', $protected ), true ) ) {
+				return;
+			}
+
+			if ( $this->viewer_may_read_tab_pages() ) {
 				return;
 			}
 
 			$redirect = affiliate_wp()->settings->get( 'affiliates_page' ) ? get_permalink( affiliate_wp()->settings->get( 'affiliates_page' ) ) : site_url();
 			$redirect = apply_filters( 'affiliatewp-affiliate-area-tabs', $redirect );
 
-			if ( in_array( get_the_ID(), affiliatewp_affiliate_area_tabs()->functions->protected_page_ids() ) && ( ! affwp_is_affiliate() ) ) {
-				wp_redirect( $redirect );
-				exit;
+			wp_safe_redirect( $redirect );
+			exit;
+		}
+
+		/**
+		 * Whether the current viewer may read the pages backing custom tabs.
+		 *
+		 * Matches the rule AffiliateWP applies to the Affiliate Area dashboard: active affiliates
+		 * only. Administrators are allowed through so the page stays editable and previewable.
+		 *
+		 * @since 1.4.3
+		 *
+		 * @return bool
+		 */
+		public function viewer_may_read_tab_pages() {
+
+			if ( current_user_can( 'manage_affiliate_options' ) ) {
+				return true;
 			}
+
+			return affwp_is_affiliate() && affwp_is_active_affiliate();
+		}
+
+		/**
+		 * Removes protected tab pages from REST collection queries for viewers who may not read them.
+		 *
+		 * @since 1.4.3
+		 *
+		 * @param array            $args    Query args.
+		 * @param \WP_REST_Request $request REST request.
+		 * @return array
+		 */
+		public function exclude_protected_pages( $args, $request ) {
+
+			$protected = (array) affiliatewp_affiliate_area_tabs()->functions->protected_page_ids();
+
+			// Editors, shop managers and other page editors still need the page in the block editor.
+			if ( empty( $protected ) || $this->viewer_may_read_tab_pages() || current_user_can( 'edit_pages' ) ) {
+				return $args;
+			}
+
+			$args['post__not_in'] = array_merge(
+				(array) ( isset( $args['post__not_in'] ) ? $args['post__not_in'] : array() ),
+				array_map( 'absint', $protected )
+			);
+
+			return $args;
+		}
+
+		/**
+		 * Strips a protected tab page's body from any REST response for viewers who may not read it.
+		 *
+		 * @since 1.4.3
+		 *
+		 * @param \WP_REST_Response $response Response.
+		 * @param \WP_Post          $post     Post.
+		 * @return \WP_REST_Response
+		 */
+		public function gate_protected_page_response( $response, $post ) {
+
+			$protected = (array) affiliatewp_affiliate_area_tabs()->functions->protected_page_ids();
+
+			if ( ! in_array( (int) $post->ID, array_map( 'absint', $protected ), true ) || $this->viewer_may_read_tab_pages() || current_user_can( 'edit_post', $post->ID ) ) {
+				return $response;
+			}
+
+			$data = $response->get_data();
+
+			foreach ( array( 'content', 'excerpt' ) as $field ) {
+				if ( isset( $data[ $field ] ) ) {
+					$data[ $field ] = array( 'rendered' => '', 'protected' => true );
+				}
+			}
+
+			$response->set_data( $data );
+
+			return $response;
+		}
+
+		/**
+		 * Keeps protected tab pages out of the sitemap.
+		 *
+		 * @since 1.4.3
+		 *
+		 * @param array  $args      Query args.
+		 * @param string $post_type Post type.
+		 * @return array
+		 */
+		public function exclude_protected_from_sitemap( $args, $post_type ) {
+
+			if ( 'page' !== $post_type ) {
+				return $args;
+			}
+
+			$args['post__not_in'] = array_merge(
+				(array) ( isset( $args['post__not_in'] ) ? $args['post__not_in'] : array() ),
+				array_map( 'absint', (array) affiliatewp_affiliate_area_tabs()->functions->protected_page_ids() )
+			);
+
+			return $args;
 		}
 
 

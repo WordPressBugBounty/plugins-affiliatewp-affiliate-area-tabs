@@ -5,8 +5,10 @@
  * Description: Add and reorder tabs in the Affiliate Area
  * Author: AffiliateWP
  * Author URI: https://affiliatewp.com
- * Version: 1.4.2
+ * Version: 1.4.4
  * Text Domain: affiliatewp-affiliate-area-tabs
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Domain Path: languages
  *
  * @package AffiliateWP_Affiliate_Area_Tabs
